@@ -225,9 +225,11 @@ func linesToBytes(lines []string, rows int, cols int) ([]byte, error) {
 
 	outbytes := make([]byte, outlen/8)
 
-	for b := 0; b < outlen; b++ {
-		outbytes[b/8] <<= 1
-		outbytes[b/8] |= outbits[b]
+	var b uint
+	for b = 0; b < outlen; b++ {
+		bi := b % 8
+		by := b / 8
+		outbytes[by] |= outbits[b] << bi
 	}
 
 	return outbytes, nil
