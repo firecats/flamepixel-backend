@@ -120,7 +120,7 @@ func handleUdp(b []byte, n int) ([]byte, error) {
 	rows := getInt(parts[2])
 	board := parts[3]
 
-	if ver != 0 {
+	if ver != 0 && ver != 1 {
 		return nil, fmt.Errorf("Unsupported version %d", ver)
 	}
 	if cols != 10 {
@@ -128,6 +128,9 @@ func handleUdp(b []byte, n int) ([]byte, error) {
 	}
 	if rows != 20 {
 		return nil, fmt.Errorf("Unsupported height %d", rows)
+	}
+	if ver == 1 {
+		rows += 1
 	}
 
 	lines := strings.SplitN(board, "\n", rows+1)
@@ -142,13 +145,28 @@ func handleUdp(b []byte, n int) ([]byte, error) {
 		}
 	}
 
-	return linesToBytes(lines[0:rows], rows, cols)
+	if ver == 0 {
+		return linesToBytes(lines[0:rows], rows, cols, false)
+	} else {
+		vp, err := lineToVP(lines[0])
+		if err != nil {
+			return nil, err
+		}
+		return linesToBytes(lines[1:rows], rows, cols, vp)
+	}
 }
 
-func linesToBytes(lines []string, rows int, cols int) ([]byte, error) {
+func lineToVP(line string) (bool, error) {
+	if strings.Contains(line, "1") {
+		return true, nil
+	}
+	return false, nil
+}
+
+func linesToBytes(lines []string, rows int, cols int, vp bool) ([]byte, error) {
 	// dmxfires wiring:
 	// master: 1- 5 -> col1,  6-10 -> col2, 11-15 -> col3
-	// slave: 17-21 -> col4, 22-26 -> col5
+	// slave: 17-21 -> col4, 22-26 -> col5, 27 -> victory poofer
 	// Lower values correspond to bottom solenoids.
 
 	// Panel layout: GH
@@ -185,6 +203,9 @@ func linesToBytes(lines []string, rows int, cols int) ([]byte, error) {
 		}
 		fmt.Printf("\n")
 	}
+	if vp {
+		fmt.Printf("VICTORY POOF!\n")
+	}
 
 	const outlen = 256
 
@@ -212,6 +233,11 @@ func linesToBytes(lines []string, rows int, cols int) ([]byte, error) {
 				byte++
 			}
 		}
+
+		if vp {
+			outbits[byte] = 1
+		}
+
 	}
 
 	/*
