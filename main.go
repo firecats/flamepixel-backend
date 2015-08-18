@@ -3,10 +3,12 @@ package main
 import (
 	"fmt"
 	"github.com/tarm/serial"
+	"math/rand"
 	"net"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const START = 0x7f
@@ -14,6 +16,11 @@ const STOP = 0x7e
 const ESCAPE = 0x20
 
 const BAUD = 115200
+
+const BLANKTIME = 3
+
+var lastFireTime time.Time
+var interstitialId = 0
 
 func main() {
 	addr := net.UDPAddr{
@@ -32,6 +39,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	lastFireTime = time.Now()
 
 	fmt.Printf("Serving on %s.  Monitor with: cu -l /dev/ttyUSB? -s %d\n", port, BAUD)
 	Serve(conn, ser)
@@ -146,6 +155,22 @@ func handleUdp(b []byte, n int) ([]byte, error) {
 		}
 	}
 
+	if allBlank(lines[0:rows]) {
+		blankFor := time.Now().Sub(lastFireTime).Seconds()
+		if blankFor >= BLANKTIME {
+			fmt.Printf("INTERSTITIAL after %vs\n", blankFor)
+			ver = 0
+			rows = 20
+			if interstitialId == 0 {
+				rand.Intn(len(INTERSTITIALS))
+			}
+			lines = INTERSTITIALS[interstitialId]
+		}
+	} else {
+		lastFireTime = time.Now()
+		interstitialId = 0
+	}
+
 	if ver == 0 {
 		return linesToBytes(lines[0:rows], rows, cols, false)
 	} else {
@@ -155,6 +180,43 @@ func handleUdp(b []byte, n int) ([]byte, error) {
 		}
 		return linesToBytes(lines[1:rows], rows, cols, vp)
 	}
+}
+
+func allBlank(lines []string) bool {
+	for _, line := range lines {
+		if strings.Contains(line, "1") {
+			return false
+		}
+	}
+	return true
+}
+
+var INTERSTITIALS = [][]string{
+	{
+		"0100000010",
+		"1100000011",
+		"1100000011",
+		"1110110111",
+		"1111111111",
+
+		"1100110011",
+		"1100110011",
+		"0111111110",
+		"0111001110",
+		"0011111100",
+
+		"0010000100",
+		"0010000100",
+		"0000000000",
+		"0000000000",
+		"0000000000",
+
+		"0000000000",
+		"0000000000",
+		"0000000000",
+		"0000000000",
+		"0000000001",
+	},
 }
 
 func lineToVP(line string) (bool, error) {
