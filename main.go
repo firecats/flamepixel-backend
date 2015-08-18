@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/tarm/serial"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -25,14 +26,14 @@ func main() {
 		panic(err)
 	}
 
-	//sc := &serial.Config{Name: "/dev/ttyUSB0", Baud: BAUD}
-	sc := &serial.Config{Name: "/dev/ttyS0", Baud: BAUD}
+	port := os.Args[1]
+	sc := &serial.Config{Name: port, Baud: BAUD}
 	ser, err := serial.OpenPort(sc)
 	if err != nil {
 		panic(err)
 	}
 
-	fmt.Printf("Serving.  Monitor with: cu -l /dev/ttyUSB? -s %d\n", BAUD)
+	fmt.Printf("Serving on %s.  Monitor with: cu -l /dev/ttyUSB? -s %d\n", port, BAUD)
 	Serve(conn, ser)
 }
 
