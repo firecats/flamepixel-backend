@@ -21,6 +21,7 @@ const BLANKTIME = 3
 
 var lastFireTime time.Time
 var interstitialId = 0
+var r1 *rand.Rand
 
 func main() {
 	addr := net.UDPAddr{
@@ -41,6 +42,9 @@ func main() {
 	}
 
 	lastFireTime = time.Now()
+
+	s1 := rand.NewSource(time.Now().UnixNano())
+	r1 = rand.New(s1)
 
 	fmt.Printf("Serving on %s.  Monitor with: cu -l /dev/ttyUSB? -s %d\n", port, BAUD)
 	Serve(conn, ser)
@@ -162,9 +166,9 @@ func handleUdp(b []byte, n int) ([]byte, error) {
 			ver = 0
 			rows = 20
 			if interstitialId == 0 {
-				rand.Intn(len(INTERSTITIALS))
+				interstitialId = r1.Intn(len(INTERSTITIALS)) + 1
 			}
-			lines = INTERSTITIALS[interstitialId]
+			lines = INTERSTITIALS[interstitialId-1]
 		}
 	} else {
 		lastFireTime = time.Now()
