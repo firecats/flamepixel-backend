@@ -215,12 +215,12 @@ func linesToBytes(lines []string, rows int, cols int) ([]byte, error) {
 	}
 
 	/*
-	   for t := 0; t < len(outbits); t++ {
-	       fmt.Printf("%d", outbits[t])
-	       if t % 8 == 7 {
-	           fmt.Printf("\n")
-	       }
-	   }
+		for t := 0; t < len(outbits); t++ {
+			fmt.Printf("%d", outbits[t])
+			if t%8 == 7 {
+				fmt.Printf("\n")
+			}
+		}
 	*/
 
 	outbytes := make([]byte, outlen/8)
