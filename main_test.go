@@ -26,7 +26,7 @@ Test plan:
 func TestLinesToBytes(t *testing.T) {
 	for _, iopair := range iopairs {
 		lines := ConstructLines(iopair.inx, iopair.iny)
-		bytes, _ := linesToBytes(lines, 20, 10)
+		bytes, _ := linesToBytes(lines, 20, 10, false)
 		assert.Equal(t, iopair.outbytes, bytes, "outbytes should be the same")
 	}
 }
