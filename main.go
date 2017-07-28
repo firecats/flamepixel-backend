@@ -137,13 +137,15 @@ func handleUdp(b []byte, n int) ([]byte, error) {
 	if ver != 0 && ver != 1 {
 		return nil, fmt.Errorf("Unsupported version %d", ver)
 	}
-	if cols != 10 {
+	if cols < 1 || cols > 10 {
 		return nil, fmt.Errorf("Unsupported width %d", cols)
 	}
-	if rows != 20 {
+	if rows < 1 || rows > 20 {
 		return nil, fmt.Errorf("Unsupported height %d", rows)
 	}
 	if ver == 1 {
+		// In v1, an extra row is added at the beginning to
+		// control the victory poofer.
 		rows += 1
 	}
 
@@ -175,6 +177,10 @@ func handleUdp(b []byte, n int) ([]byte, error) {
 		interstitialId = 0
 	}
 
+	if cols < 10 || rows < 20 {
+		lines = extendLines(lines)
+	}
+
 	if ver == 0 {
 		return linesToBytes(lines[0:rows], rows, cols, false)
 	} else {
@@ -193,6 +199,20 @@ func allBlank(lines []string) bool {
 		}
 	}
 	return true
+}
+
+func extendLines(lines []string) []string {
+	newLines := make([]string, 20)
+	inRows := len(lines)
+
+	for l := 0; l < len(newLines); l++ {
+		line := lines[l%inRows]
+		inCols := len(line)
+
+		newLine := strings.Repeat(line, 10/inCols+1)
+		newLines[l] = newLine[0:10]
+	}
+	return newLines
 }
 
 var INTERSTITIALS = [][]string{
