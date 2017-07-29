@@ -178,17 +178,17 @@ func handleUdp(b []byte, n int) ([]byte, error) {
 	}
 
 	if cols < 10 || rows < 20 {
-		lines = extendLines(lines)
+		lines = extendLines(lines[0:rows])
 	}
 
 	if ver == 0 {
-		return linesToBytes(lines[0:rows], rows, cols, false)
+		return linesToBytes(lines[0:20], 20, 10, false)
 	} else {
 		vp, err := lineToVP(lines[0])
 		if err != nil {
 			return nil, err
 		}
-		return linesToBytes(lines[1:rows], rows, cols, vp)
+		return linesToBytes(lines[1:20], 20, 10, vp)
 	}
 }
 
