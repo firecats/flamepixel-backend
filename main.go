@@ -46,7 +46,7 @@ func main() {
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 = rand.New(s1)
 
-	fmt.Printf("Serving on %s.  Monitor with: cu -l /dev/ttyUSB? -s %d\n", port, BAUD)
+	fmt.Printf("Sending on %s.  Monitor with: cu -l /dev/ttyUSB? -s %d\n", port, BAUD)
 	Serve(conn, ser)
 }
 
